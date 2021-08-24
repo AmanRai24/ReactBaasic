@@ -19,6 +19,7 @@ class AddContact extends React.Component{
             email:"",
             mobile:"",
         });
+        this.props.history.push("/");
         //console.log(this.state);
     };
     render(){
