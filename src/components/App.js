@@ -11,7 +11,8 @@ import EditContact from './EditContact';
 function App() {
   const LOCAL_STORAGE_KEY="contacts";
   const[contacts,setContacts]=useState([]);
-
+  const[searchTerm,setSearchTearm]=useState("");
+  const[searchResults,setSearchResults]=useState([]);
   //Retrieve Contacts
 const retrieveContacts=async()=>{
   const response =await api.get("./contacts");
@@ -47,6 +48,23 @@ const retrieveContacts=async()=>{
     setContacts(newContactList);
   };
 
+  const searchHandler=(searchTerm)=>{
+    setSearchTearm(searchTerm);
+    if(searchTerm !=="")
+    {
+      const newContactList=contacts.filter((contact)=>{
+        return Object.values(contact)
+        .join(" ")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      });
+      setSearchResults(newContactList);
+    }
+      else{
+        setSearchResults(contacts);
+      }
+  };
+
   useEffect(()=>{
   //   const retriveContacts=JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
   //  if(retriveContacts) setContacts(retriveContacts);
@@ -73,9 +91,12 @@ const retrieveContacts=async()=>{
             render ={(props) =>(
               <ContactList 
                 {...props}
-                contacts={contacts}
-                getContactId={removeContactHandler}/>
-            )}
+                contacts={searchTerm.length < 1 ? contacts:searchResults}
+                getContactId={removeContactHandler}
+                term={searchTerm}
+                searchKeyword={searchHandler}/>
+                
+                )}
             />
           <Route path="/add" 
             render={(props)=>(
