@@ -19,11 +19,19 @@ const ContactCard=(props)=>{
                         {mobile}
                     </div>
                     </Link>
-                    
+                    <i className="trash alternate icon" 
+                        style={{fontSize:"22px" ,color:"red",marginTop:"7px",marginLeft:"10px" , cursor:"pointer"}}
+                        onClick={()=>props.clickHandler(id)} 
+                ></i>
+                <Link to={{pathname:`/edit`,state:{contact:props.contact}}}>
+                <i className="edit alternate icon" 
+                        style={{fontSize:"22px" ,color:"blue",marginBottom:"7px", cursor:"pointer"}}
+                        
+                ></i>
+                </Link>
+                
                 </div>
-                <i className="trash alternate icon" 
-                        style={{fontSize:"22px" ,color:"red",marginTop:"7px", cursor:"pointer"}}
-                        onClick={()=>props.clickHandler(id)} ></i>
+                
             </div>
     )
 
