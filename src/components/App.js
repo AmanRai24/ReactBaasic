@@ -1,123 +1,118 @@
-import React,{useState,useEffect} from 'react';
-import {BrowserRouter as Router, Switch,Route} from "react-router-dom";
-import {uuid} from "uuidv4";
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { uuid } from "uuidv4";
 import Header from "./Header";
 import AddContact from "./AddContact";
 import ContactList from "./ContactList";
-import ContactDetail from './ContactDetail';
-import api from '../api/contacts';
-import EditContact from './EditContact';
+import ContactDetail from "./ContactDetail";
+import api from "../api/contacts";
+import EditContact from "./EditContact";
 
 function App() {
-  const LOCAL_STORAGE_KEY="contacts";
-  const[contacts,setContacts]=useState([]);
-  const[searchTerm,setSearchTearm]=useState("");
-  const[searchResults,setSearchResults]=useState([]);
-  //Retrieve Contacts
-const retrieveContacts=async()=>{
-  const response =await api.get("./contacts");
-  return response.data;
-};
+  const LOCAL_STORAGE_KEY = "contacts";
+  const [contacts, setContacts] = useState([]);
+  const [searchTerm, setSearchTearm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
 
-  const addContactHandler = async(contact)=>{
-        console.log(contact);
-        const request={
-          id:uuid(),
-          ...contact
-        }
+  // const retrieveContacts = async () => {
+  //   const response = await api.get("./contacts");
+  //   return response.data;
+  // };
 
-        const response =await api.post("/contacts",request)
+  useEffect(() => {
+    const retrieveContacts = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_KEY)
+    );
+    if (retrieveContacts) setContacts(retrieveContacts);
+  }, []);
 
-        setContacts([...contacts, response.data]);
-  };
+  const addContactHandler = async (contact) => {
+    const request = {
+      id: uuid(),
+      ...contact,
+    };
 
-  const updateContactHandler=async(contact)=>{
-    const response=await api.put(`/contacts/${contact.id}`,contact)
-    const {id,name,email,mobile}=response.data;
-    setContacts(contacts.map((contact)=>{
-      return contact.id===id? {...response.data} : contact;    
-    })
+    setContacts([...contacts, request]);
+
+    localStorage.setItem(
+      LOCAL_STORAGE_KEY,
+      JSON.stringify([...contacts, request])
     );
   };
 
-  const removeContactHandler=async(id)=>{
-    await api.delete(`/contacts/${id}`);
-    const newContactList=contacts.filter((contact)=>{
-      return contact.id!==id;
+  const updateContactHandler = async (contact) => {
+    //const response = await api.put(`/contacts/${contact.id}`, contact);
+    //const { id, name, email, mobile } = response.data;
+    const newContactList = contacts.map((res) => {
+      return res.id === contact.id ? { ...contact } : contact;
+    });
+
+    setContacts(newContactList);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newContactList));
+  };
+
+  const removeContactHandler = async (id) => {
+    //await api.delete(`/contacts/${id}`);
+    const newContactList = contacts.filter((contact) => {
+      return contact.id !== id;
     });
     setContacts(newContactList);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newContactList));
   };
 
-  const searchHandler=(searchTerm)=>{
+  const searchHandler = (searchTerm) => {
     setSearchTearm(searchTerm);
-    if(searchTerm !=="")
-    {
-      const newContactList=contacts.filter((contact)=>{
+    if (searchTerm !== "") {
+      const newContactList = contacts.filter((contact) => {
         return Object.values(contact)
-        .join(" ")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+          .join(" ")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
       });
       setSearchResults(newContactList);
+    } else {
+      setSearchResults(contacts);
     }
-      else{
-        setSearchResults(contacts);
-      }
   };
-
-  useEffect(()=>{
-  //   const retriveContacts=JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
-  //  if(retriveContacts) setContacts(retriveContacts);
-    const getAllContacts=async()=>{
-      const allContacts=await retrieveContacts();
-      if(allContacts) setContacts(allContacts);
-    };
-
-    getAllContacts();
-
-  },[]);
-
-  useEffect(()=>{
-   // localStorage.setItem(LOCAL_STORAGE_KEY,JSON.stringify(contacts));
-  },[contacts]);
 
   return (
     <div className="ui container">
       <Router>
-          <Header />
-          <switch>
-          <Route path="/" 
-            exact 
-            render ={(props) =>(
-              <ContactList 
+        <Header />
+        <Switch>
+          <Route
+            path="/"
+            exact
+            render={(props) => (
+              <ContactList
                 {...props}
-                contacts={searchTerm.length < 1 ? contacts:searchResults}
+                contacts={searchTerm.length < 1 ? contacts : searchResults}
                 getContactId={removeContactHandler}
                 term={searchTerm}
-                searchKeyword={searchHandler}/>
-                
-                )}
-            />
-          <Route path="/add" 
-            render={(props)=>(
-              <AddContact
-                {...props} addContactHandler={addContactHandler} />
+                searchKeyword={searchHandler}
+              />
             )}
-           />
+          />
+          <Route
+            path="/add"
+            render={(props) => (
+              <AddContact {...props} addContactHandler={addContactHandler} />
+            )}
+          />
 
-          <Route path="/edit" 
-            render={(props)=>(
+          <Route
+            path="/edit"
+            render={(props) => (
               <EditContact
-                {...props} updateContactHandler={updateContactHandler} />
+                {...props}
+                updateContactHandler={updateContactHandler}
+              />
             )}
-           />
+          />
 
           <Route path="/contact/:id" component={ContactDetail} />
-
-          
-          </switch>
+        </Switch>
       </Router>
-    
     </div>
   );
 }
